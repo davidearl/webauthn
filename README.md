@@ -1,7 +1,7 @@
 # PHP webauthn implementation
 
 [webauthn](https://www.w3.org/TR/webauthn/) allows for browser logins
-using a physical key (such as a [Yubikey 2 seciurity
+using a physical key (such as a [Yubikey 2 security
 key](https://www.yubico.com/product/security-key-by-yubico/)) or, in
 due course, biometrics such as fingerprints, that support the
 protocol. [Google announced a pair of compatible hardware keys recently
@@ -15,9 +15,9 @@ password-less logins was widely broadcast in the technical press. But
 the reality is the whole thing is just too complicated for easy
 adoption. It needs another layer to simplify it for routine use.
 
-There are a couple examples in Javascript (for example
-[here](https://webauthn.bin.coffee/). But the whole point is that the
-challenge and authetication must be done server-side.
+There are a couple examples in Javascript (see the
+["coffee" example](https://webauthn.bin.coffee/)). But the whole point is that the
+challenge and authentication must be done server-side.
 
 It's fiendishly complicated, not so much in the cryptography as the
 way the structures are packed and named. Unnecessarily so
