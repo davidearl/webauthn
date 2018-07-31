@@ -190,7 +190,7 @@ h2 {
 <body>
   <h1>webauthn php server side example and test</h1>
   <ul>
-	<li><a href='https://github.com/daviearl/webauthn'>GitHub</a>
+	<li><a href='https://github.com/davidearl/webauthn'>GitHub</a>
   </ul>
 
   <div class='cerror'></div>
