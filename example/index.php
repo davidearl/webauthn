@@ -38,7 +38,7 @@ function userpath($username){
 }
 
 function getuser($username){
-  $user = @file_get_contents(sprintf('%s/%s.json', USER_DATABASE, urlencode($username)));
+  $user = @file_get_contents(userpath($username)));
   if (empty($user)) { oops('user not found'); }
   $user = json_decode($user);
   if (empty($user)) { oops('user not json decoded'); }
