@@ -38,7 +38,7 @@ function userpath($username){
 }
 
 function getuser($username){
-  $user = @file_get_contents(userpath($username)));
+  $user = @file_get_contents(userpath($username));
   if (empty($user)) { oops('user not found'); }
   $user = json_decode($user);
   if (empty($user)) { oops('user not json decoded'); }
@@ -95,6 +95,8 @@ if (! empty($_POST)) {
       /* initiate the login */
       $username = $_POST['loginusername'];
       $user = getuser($username);
+      $_SESSION['loginname'] = $user->name;
+      
       /* note: that will emit an error if username does not exist. That's not 
          good practice for a live system, as you don't want to have a way for
          people to interrogate your user database for existence */
@@ -104,8 +106,8 @@ if (! empty($_POST)) {
 
     case isset($_POST['login']):
       /* authenticate the login */
-      if (empty($_SESSION['username'])) { oops('username not set'); }
-      $user = getuser($_SESSION['username']);
+      if (empty($_SESSION['loginname'])) { oops('username not set'); }
+      $user = getuser($_SESSION['loginname']);
 
       if (! $webauthn->authenticate($_POST['login'], $user->webauthnkeys)) {
         http_response_code(401);
