@@ -9,7 +9,7 @@ sending to the server.
 
 When registering a user account, or allowing them to add a key in their profile,
 or whatever, request a challenge from $webauthn->challenge() (e.g. using Ajax)
-and pass the resuting key string to 
+and pass the resulting key string to
   webauthnRegister(key, cb)
 where key is the contents of the hidden field (or however else you stored
 the challenge string). 
@@ -24,7 +24,7 @@ in which case pass the info back to the server, call $webauth->register to
 validate it, and put the resulting string back in the user record for use
 in future logins.
 
-If success is false, then either info is the string 'abort', meabing the
+If success is false, then either info is the string 'abort', meaning the
 user failed to complete the process, or an error message of whatever else
 went wrong.
 
@@ -59,7 +59,7 @@ function webauthnRegister(key, cb){
 				clientDataJSON:
 				  JSON.parse(String.fromCharCode.apply(null, new Uint8Array(aNewCredentialInfo.response.clientDataJSON)))
 			}
-		}
+		};
 		cb(true, JSON.stringify(info));
 	}).
 	catch(function(aErr) {

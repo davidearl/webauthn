@@ -145,7 +145,7 @@ h1 {
   font-size: 1.5em;
 }
 h2 {
-  font-=size: 1.2em'
+  font-size: 1.2em;
 }
 .ccontent {
   display: flex;
@@ -185,9 +185,6 @@ h2 {
 }
 </style>
 
-<script src='/webauthn/src/webauthnregister.js'></script>
-<script src='/webauthn/src/webauthnauthenticate.js'></script>
-
 </head>
 <body>
   <h1>webauthn php server side example and test</h1>
@@ -225,6 +222,8 @@ h2 {
 
   </div>
 
+<script src='/webauthn/src/webauthnregister.js'></script>
+<script src='/webauthn/src/webauthnauthenticate.js'></script>
 <!-- only for the example, the webauthn js does not need jquery itself -->
 <script src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
 
