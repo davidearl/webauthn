@@ -6,7 +6,7 @@ key](https://www.yubico.com/product/security-key-by-yubico/)) or, in
 due course, biometrics such as fingerprints, that support the
 protocol. [Google announced a pair of compatible hardware keys recently
 too](https://www.cnet.com/news/google-made-the-titan-key-to-toughen-up-your-online-security/),
-but I don't have one yet to test code this with.
+but I don't have one yet to test code this with (6 Nov 2018: on order).
 
 Webauthn was [announced for Firefox
 60](https://blog.mozilla.org/blog/2018/05/09/firefox-gets-down-to-business-and-its-personal/)
