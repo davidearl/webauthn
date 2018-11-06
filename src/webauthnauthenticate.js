@@ -26,10 +26,10 @@ On completion it will call the callback function cb:
   function cb(success, info)
 success is a boolean, true for successful acquisition of info from the key,
 in which case put info in the hidden field and continue with the submit
-(or do an Ajax POST with the info, or whatever) and when receieved on the
+(or do an Ajax POST with the info, or whatever) and when received on the
 server side call webauthn->authenticate.
 
-If success is false, then either info is the string 'abort', meabing the
+If success is false, then either info is the string 'abort', meaning the
 user failed to complete the process, or an error message of whatever else
 went wrong.
 

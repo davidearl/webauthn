@@ -330,7 +330,7 @@ class WebAuthn {
   
   /**
    * convert a public key from the hardware to PEM format
-   * @param string $pk to be converted to PEM format
+   * @param string $key to be converted to PEM format
    * @return string converted to PEM format
    */
   private function pubkey_to_pem($key) {
