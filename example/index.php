@@ -111,7 +111,7 @@ if (! empty($_POST)) {
 
       if (! $webauthn->authenticate($_POST['login'], $user->webauthnkeys)) {
         http_response_code(401);
-        echo 'failed to authticate with that key';
+        echo 'failed to authenticate with that key';
         exit;
       }
       $j = 'ok';
