@@ -77,7 +77,9 @@ class WebAuthn {
     $result->pubKeyCredParams[0]->type = 'public-key';
 
     $result->authenticatorSelection = (object)array();
-    $result->authenticatorSelection->authenticatorAttachment = 'cross-platform';
+    // $result->authenticatorSelection->authenticatorAttachment = 'cross-platform';
+    /* that line would restrict to external devices, not including built-in ones like integral fingerprint reader */
+    
     $result->authenticatorSelection->requireResidentKey = FALSE;
     $result->authenticatorSelection->userVerification = 'preferred';
 
@@ -278,6 +280,9 @@ class WebAuthn {
       $this->oops('cannot decode key response (2b)');
     }
 
+    /* experience shows that at least one device (OnePlus 6T/Pie (Android phone)) doesn't set this, 
+       so this test would fail. This is not correct according to the spec, so  pragmatically it may 
+       have to be removed */
     if ($ao->flags != 0x1) { $this->oops('cannot decode key response (2c)'); } /* only TUP must be set */
 
     /* assemble signed data */
