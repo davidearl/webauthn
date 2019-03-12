@@ -20,8 +20,8 @@ include_once($_SERVER['DOCUMENT_ROOT'].'/CBOREncode/src/CBOR/CBORExceptions.php'
 define('USER_DATABASE', dirname(dirname(__DIR__)).'/.users');
 if (! file_exists(USER_DATABASE)) {
   if (! @mkdir(USER_DATABASE)) {
-    error_log('Cannot create user database directory - is the html directory writable by the web server? If not: "mkdir .users; chmod 777 .users"');
-    die("cannot create .users - see error log");
+    error_log(sprintf('Cannot create user database directory - is the html directory writable by the web server? If not: "mkdir %s; chmod 777 %s"', USER_DATABASE, USER_DATABASE));
+    die(sprintf("cannot create %s - see error log", USER_DATABASE));
   } 
 }
 session_start();
