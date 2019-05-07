@@ -283,7 +283,7 @@ class WebAuthn {
     /* experience shows that at least one device (OnePlus 6T/Pie (Android phone)) doesn't set this, 
        so this test would fail. This is not correct according to the spec, so  pragmatically it may 
        have to be removed */
-    if ($ao->flags != 0x1) { $this->oops('cannot decode key response (2c)'); } /* only TUP must be set */
+    if (($ao->flags & 0x1) != 0x1) { $this->oops('cannot decode key response (2c)'); } /* only TUP must be set */
 
     /* assemble signed data */
     $clientdata = self::array_to_string($info->response->clientDataJSONarray);
