@@ -2,3 +2,5 @@
 Thumbs.db
 *.unused
 \#*\#
+
+/vendor/
