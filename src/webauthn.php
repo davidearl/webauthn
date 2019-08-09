@@ -67,14 +67,14 @@ class WebAuthn
     *                user perhaps the database record id
     * @return string pass this JSON string back to the browser
     */
-    public function prepare_challenge_for_registration($username, $userid)
+    public function prepareChallengeForRegistration($username, $userid)
     {
         $result = (object)array();
         $rbchallenge = random_bytes(16);
-        $result->challenge = self::string_to_array($rbchallenge);
+        $result->challenge = self::stringToArray($rbchallenge);
         $result->user = (object)array();
         $result->user->name = $result->user->displayName = $username;
-        $result->user->id = self::string_to_array($userid);
+        $result->user->id = self::stringToArray($userid);
 
         $result->rp = (object)array();
         $result->rp->name = $result->rp->id = $this->appid;
@@ -130,7 +130,7 @@ class WebAuthn
         /* check response from key and store as new identity. This is a hex string representing the raw CBOR
         attestation object received from the key */
 
-        $aos = self::array_to_string($info->response->attestationObject);
+        $aos = self::arrayToString($info->response->attestationObject);
         $ao = (object)(\CBOR\CBOREncoder::decode($aos));
         if (empty($ao)) {
             $this->oops('cannot decode key response (1)');
@@ -203,13 +203,13 @@ class WebAuthn
         }
         $ao->attData->keyBytes = chr(4).$x.$y;
 
-        $rawId = self::array_to_string($info->rawId);
+        $rawId = self::arrayToString($info->rawId);
         if ($ao->attData->credId != $rawId) {
             $this->oops('cannot decode key response (16)');
         }
 
         $publicKey = (object)array();
-        $publicKey->key = $this->pubkey_to_pem($ao->attData->keyBytes);
+        $publicKey->key = $this->pubkeyToPem($ao->attData->keyBytes);
         $publicKey->id = $info->rawId;
         //log($publicKey->key);
 
@@ -240,7 +240,7 @@ class WebAuthn
     * @param string $userwebauthn the existing webauthn field for the user from your database
     * @return string to pass to javascript webauthnAuthenticate
     */
-    public function prepare_for_login($userwebauthn)
+    public function prepareForLogin($userwebauthn)
     {
         $allow = (object)array();
         $allow->type = 'public-key';
@@ -258,13 +258,13 @@ class WebAuthn
             // log("fabricating key");
             $allow->id = array();
             $rb = md5((string)time());
-            $allow->id = self::string_to_array($rb);
+            $allow->id = self::stringToArray($rb);
             $allows[] = clone $allow;
         }
 
         /* generate key request */
         $publickey = (object)array();
-        $publickey->challenge = self::string_to_array(random_bytes(16));
+        $publickey->challenge = self::stringToArray(random_bytes(16));
         $publickey->timeout = 60000;
         $publickey->allowCredentials = $allows;
         $publickey->userVerification = 'preferred';
@@ -312,7 +312,7 @@ class WebAuthn
         }
 
         /* cross-check challenge */
-        $oc = rtrim(strtr(base64_encode(self::array_to_string($info->originalChallenge)), '+/', '-_'), '=');
+        $oc = rtrim(strtr(base64_encode(self::arrayToString($info->originalChallenge)), '+/', '-_'), '=');
         if ($oc != $info->response->clientData->challenge) {
             $this->oops("challenge mismatch");
         }
@@ -327,7 +327,7 @@ class WebAuthn
             $this->oops("type mismatch '{$info->response->clientData->type}'");
         }
 
-        $bs = self::array_to_string($info->response->authenticatorData);
+        $bs = self::arrayToString($info->response->authenticatorData);
         $ao = (object)array();
 
         $ao->rpIdHash = substr($bs, 0, 32);
@@ -348,14 +348,14 @@ class WebAuthn
         } /* only TUP must be set */
 
         /* assemble signed data */
-        $clientdata = self::array_to_string($info->response->clientDataJSONarray);
+        $clientdata = self::arrayToString($info->response->clientDataJSONarray);
         $signeddata = $hashId . chr($ao->flags) . $ao->counter . hash('sha256', $clientdata, true);
 
         if (count($info->response->signature) < 70) {
             $this->oops('cannot decode key response (3)');
         }
 
-        $signature = self::array_to_string($info->response->signature);
+        $signature = self::arrayToString($info->response->signature);
 
         //$key = str_replace(chr(13), '', $key->key);
         $key = $key->key;
@@ -377,7 +377,7 @@ class WebAuthn
     * @param array $a to be converted (array of unsigned 8 bit integers)
     * @return string converted to bytes
     */
-    private static function array_to_string($a)
+    private static function arrayToString($a)
     {
         $s = '';
         foreach ($a as $c) {
@@ -391,7 +391,7 @@ class WebAuthn
     * @param string $s to be converted
     * @return array converted to array of unsigned integers
     */
-    private static function string_to_array($s)
+    private static function stringToArray($s)
     {
         /* convert binary string to array of uint8 */
         $a = [];
@@ -406,7 +406,7 @@ class WebAuthn
     * @param string $key to be converted to PEM format
     * @return string converted to PEM format
     */
-    private function pubkey_to_pem($key)
+    private function pubkeyToPem($key)
     {
         /* see https://github.com/Yubico/php-u2flib-server/blob/master/src/u2flib_server/U2F.php */
         if (strlen($key) !== 65 || $key[0] !== "\x04") {
