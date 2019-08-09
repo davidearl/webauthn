@@ -27,7 +27,7 @@
  * - openssl that supports SHA256
  */
 
-namespace davidearl\webauthn;
+namespace Davidearl\WebAuthn;
 
 class WebAuthn {
 
