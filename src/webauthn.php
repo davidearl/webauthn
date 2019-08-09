@@ -220,7 +220,7 @@ class WebAuthn {
     $publickey->userVerification = 'preferred';
     $publickey->extensions = (object)array();
     $publickey->extensions->txAuthSimple = 'Execute order 66';
-    $publickey->rpid = str_replace('https://', '', $this->appid);
+    $publickey->rpId = str_replace('https://', '', $this->appid);
 
     return json_encode($publickey);
   }
