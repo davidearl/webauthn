@@ -31,7 +31,6 @@ namespace davidearl\webauthn;
 
 class WebAuthn
 {
-    protected $appid;
 
     /**
     * construct object on which to operate
