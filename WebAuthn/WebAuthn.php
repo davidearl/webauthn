@@ -1,6 +1,6 @@
 <?php
 
-namespace davidearl\webauthn;
+namespace Davidearl\WebAuthn;
 
 /**
 * @package davidearl\webauthn
