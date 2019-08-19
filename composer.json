@@ -10,5 +10,10 @@
             "name": "David Earl"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "Davidearl\\WebAuthn\\": "WebAuthn"
+        }
+    },
     "license": "MIT"
 }

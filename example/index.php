@@ -5,12 +5,7 @@ If you put the whole webauthn directory in the www document root and put an inde
 which just includes this file, it should then work. Alternatively set it as a link to this file.
 */
  
-include_once($_SERVER['DOCUMENT_ROOT'].'/webauthn/src/webauthn.php');
-
-/* from https://github.com/2tvenom/CBOREncode :  */
-include_once($_SERVER['DOCUMENT_ROOT'].'/CBOREncode/src/CBOR/CBOREncoder.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/CBOREncode/src/CBOR/Types/CBORByteString.php');
-include_once($_SERVER['DOCUMENT_ROOT'].'/CBOREncode/src/CBOR/CBORExceptions.php');
+require_once('../vendor/autoload.php');
 
 /* In this example, the user database is simply a directory of json files 
   named by their username (urlencoded so there are no weird characters 
@@ -50,7 +45,7 @@ if (! empty($_POST)) {
 
   try {
   
-    $webauthn = new davidearl\webauthn\WebAuthn($_SERVER['HTTP_HOST']);
+    $webauthn = new \Davidearl\WebAuthn\WebAuthn($_SERVER['HTTP_HOST']);
 
     switch(TRUE){
 
@@ -222,8 +217,14 @@ h2 {
 
   </div>
 
-<script src='/webauthn/src/webauthnregister.js'></script>
-<script src='/webauthn/src/webauthnauthenticate.js'></script>
+<script type="application/javascript">
+<?php
+echo file_get_contents('../src/webauthnregister.js');
+echo file_get_contents('../src/webauthnauthenticate.js');
+?>
+
+</script>
+
 <!-- only for the example, the webauthn js does not need jquery itself -->
 <script src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
 
