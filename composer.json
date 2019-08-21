@@ -3,6 +3,7 @@
     "description": "An implementation of webauthn in PHP on the server side (e.g Yubico 2 and Google Titan keys)",
     "type": "library",
     "require": {
+        "php": "^7.0",
         "2tvenom/cborencode": "^1.0"
     },
     "authors": [
