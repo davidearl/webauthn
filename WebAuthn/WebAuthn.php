@@ -244,7 +244,7 @@ class WebAuthn
     {
         $allow = (object)array();
         $allow->type = 'public-key';
-        $allow->transports = array('usb','nfc','ble');
+        $allow->transports = array('usb','nfc','ble','internal');
         $allow->id = null;
         $allows = array();
         if (! empty($userwebauthn)) {
