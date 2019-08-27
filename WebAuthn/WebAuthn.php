@@ -70,7 +70,7 @@ class WebAuthn
     public function prepareChallengeForRegistration($username, $userid)
     {
         $result = (object)array();
-        $rbchallenge = random_bytes(16);
+        $rbchallenge = self::randomBytes(16);
         $result->challenge = self::stringToArray($rbchallenge);
         $result->user = (object)array();
         $result->user->name = $result->user->displayName = $username;
@@ -244,7 +244,7 @@ class WebAuthn
     {
         $allow = (object)array();
         $allow->type = 'public-key';
-        $allow->transports = array('usb','nfc','ble');
+        $allow->transports = array('usb','nfc','ble','internal');
         $allow->id = null;
         $allows = array();
         if (! empty($userwebauthn)) {
@@ -264,7 +264,7 @@ class WebAuthn
 
         /* generate key request */
         $publickey = (object)array();
-        $publickey->challenge = self::stringToArray(random_bytes(16));
+        $publickey->challenge = self::stringToArray(self::randomBytes(16));
         $publickey->timeout = 60000;
         $publickey->allowCredentials = $allows;
         $publickey->userVerification = 'preferred';
@@ -431,6 +431,26 @@ class WebAuthn
         return $pem;
     }
 
+    /**
+    * shim for random_bytes which doesn't exist pre php7
+    * @param int $length the number of bytes required
+    * @return string length cryptographically random bytes
+    */
+    private static function randomBytes($length)
+    {
+      if (function_exists('random_bytes')) {
+          return random_bytes($length);
+      } else if (function_exists('openssl_random_pseudo_bytes')) {
+          $bytes = openssl_random_pseudo_bytes($length, $crypto_strong);
+          if (! $crypto_strong) {
+              throw new \Exception("openssl_random_pseudo_bytes did not return a cryptographically strong result", 1);
+          }
+          return $bytes;
+      } else {
+          throw new \Exception("Neither random_bytes not openssl_random_pseudo_bytes exists. PHP too old? openssl PHP extension not installed?", 1);
+      }
+    }
+  
     /**
     * just an abbreviation to throw an error: never returns
     * @param string $s error message

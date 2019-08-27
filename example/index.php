@@ -1,23 +1,23 @@
 <?php
 
 /*
-If you put the whole webauthn directory in the www document root and put an index.php in there 
+If you put the whole webauthn directory in the www document root and put an index.php in there
 which just includes this file, it should then work. Alternatively set it as a link to this file.
 */
- 
+
 require_once('../vendor/autoload.php');
 
-/* In this example, the user database is simply a directory of json files 
-  named by their username (urlencoded so there are no weird characters 
-  in the file names). For simplicity, it's in the HTML tree so someone 
-  could look at it - you really, really don't want to do this for a 
+/* In this example, the user database is simply a directory of json files
+  named by their username (urlencoded so there are no weird characters
+  in the file names). For simplicity, it's in the HTML tree so someone
+  could look at it - you really, really don't want to do this for a
   live system */
 define('USER_DATABASE', dirname(dirname(__DIR__)).'/.users');
 if (! file_exists(USER_DATABASE)) {
   if (! @mkdir(USER_DATABASE)) {
     error_log(sprintf('Cannot create user database directory - is the html directory writable by the web server? If not: "mkdir %s; chmod 777 %s"', USER_DATABASE, USER_DATABASE));
     die(sprintf("cannot create %s - see error log", USER_DATABASE));
-  } 
+  }
 }
 session_start();
 
@@ -44,7 +44,7 @@ function getuser($username){
 if (! empty($_POST)) {
 
   try {
-  
+
     $webauthn = new \Davidearl\WebAuthn\WebAuthn($_SERVER['HTTP_HOST']);
 
     switch(TRUE){
@@ -52,23 +52,23 @@ if (! empty($_POST)) {
     case isset($_POST['registerusername']):
       /* initiate the registration */
       $username = $_POST['registerusername'];
-      
+
       $userid = md5(time() . '-'. rand(1,1000000000));
 
       if (file_exists(userpath($username))) {
         oops("user '{$username}' already exists");
       }
 
-      /* Create a new user in the database. In principle, you can store more 
+      /* Create a new user in the database. In principle, you can store more
          than one key in the user's webauthnkeys,
-         but you'd probably do that from a user profile page rather than initial 
-         registration. The procedure is the same, just don't cancel existing 
+         but you'd probably do that from a user profile page rather than initial
+         registration. The procedure is the same, just don't cancel existing
          keys like this.*/
       file_put_contents(userpath($username), json_encode(['name'=> $username,
                                                           'id'=> $userid,
                                                           'webauthnkeys' => $webauthn->cancel()]));
       $_SESSION['username'] = $username;
-      $j = ['challenge' => $webauthn->prepare_challenge_for_registration($username, $userid)];
+      $j = ['challenge' => $webauthn->prepareChallengeForRegistration($username, $userid)];
       break;
 
     case isset($_POST['register']):
@@ -79,11 +79,11 @@ if (! empty($_POST)) {
       /* The heart of the matter */
       $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys);
 
-      /* Save the result to enable a challenge to be raised agains this 
+      /* Save the result to enable a challenge to be raised agains this
          newly created key in order to log in */
       file_put_contents(userpath($user->name), json_encode($user));
       $j = 'ok';
-      
+
       break;
 
     case isset($_POST['loginusername']):
@@ -91,12 +91,12 @@ if (! empty($_POST)) {
       $username = $_POST['loginusername'];
       $user = getuser($username);
       $_SESSION['loginname'] = $user->name;
-      
-      /* note: that will emit an error if username does not exist. That's not 
+
+      /* note: that will emit an error if username does not exist. That's not
          good practice for a live system, as you don't want to have a way for
          people to interrogate your user database for existence */
 
-      $j['challenge'] = $webauthn->prepare_for_login($user->webauthnkeys);
+      $j['challenge'] = $webauthn->prepareForLogin($user->webauthnkeys);
       break;
 
     case isset($_POST['login']):
@@ -110,24 +110,24 @@ if (! empty($_POST)) {
         exit;
       }
       $j = 'ok';
-      
+
       break;
 
     default:
       http_response_code(400);
       echo "unrecognized POST\n";
       break;
-    }    
+    }
 
   } catch(Exception $ex) {
     oops($ex->getMessage());
   }
-    
+
   header('Content-type: application/json');
   echo json_encode($j);
   exit;
 }
-   
+
 ?><!doctype html>
 <html>
 <head>
@@ -189,9 +189,9 @@ h2 {
 
   <div class='cerror'></div>
   <div class='cdone'></div>
-  
+
   <div class='ccontent'>
-	
+
 	<div class='cbox' id='iregister'>
 	  <h2>User Registration</h2>
 	  <form id='iregisterform' action='/' method='POST'>
@@ -212,7 +212,7 @@ h2 {
 	  <div class='cdokey' id='ilogindokey'>
 		Do your thing: press button on key, swipe fingerprint or whatever
 	  </div>
-	  
+
 	</div>
 
   </div>
@@ -235,7 +235,7 @@ echo file_get_contents('../src/webauthnauthenticate.js');
 		var self = $(this);
 		ev.preventDefault();
 		$('.cerror').empty().hide();
-		
+
 		$.ajax({url: '/',
 				method: 'POST',
 				data: {registerusername: self.find('[name=registerusername]').val()},
@@ -276,7 +276,7 @@ echo file_get_contents('../src/webauthnauthenticate.js');
 		var self = $(this);
 		ev.preventDefault();
 		$('.cerror').empty().hide();
-		
+
 		$.ajax({url: '/',
 				method: 'POST',
 				data: {loginusername: self.find('[name=loginusername]').val()},
@@ -304,7 +304,7 @@ echo file_get_contents('../src/webauthnauthenticate.js');
 						}
 					});
 				},
-				
+
 				error: function(xhr, status, error){
 					$('#iloginform').show();
 					$('#ilogindokey').hide();
@@ -312,9 +312,9 @@ echo file_get_contents('../src/webauthnauthenticate.js');
 				}
 			   });
 	});
-	
+
 });
 </script>
-    
+
 </body>
 </html>
