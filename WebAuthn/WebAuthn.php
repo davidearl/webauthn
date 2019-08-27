@@ -412,7 +412,7 @@ class WebAuthn
      * @param string binary string to be converted
      * @return string converted public key
      */
-    private static function COSEECDHAtoPKCS($binary)
+    private function COSEECDHAtoPKCS($binary)
     {
             $ao->pubKey = \CBOR\CBOREncoder::decode($cborPubKey);
             if (! isset($ao->pubKey[1] /* cose_kty */)) {
