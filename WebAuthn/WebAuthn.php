@@ -177,40 +177,7 @@ class WebAuthn
         $ao->attData->credId = substr($bs, 55, $ao->attData->credIdLen);
         $cborPubKey  = substr($bs, 55+$ao->attData->credIdLen); // after credId to end of string
 
-        $ao->pubKey = \CBOR\CBOREncoder::decode($cborPubKey);
-        if (! isset($ao->pubKey[1] /* cose_kty */)) {
-            $this->oops('cannot decode key response (7)');
-        }
-        if (! isset($ao->pubKey[3] /* cose_alg */)) {
-            $this->oops('cannot decode key response (8)');
-        }
-        if (! isset($ao->pubKey[-1] /* cose_crv */)) {
-            $this->oops('cannot decode key response (9)');
-        }
-        if (! isset($ao->pubKey[-2] /* cose_crv_x */)) {
-            $this->oops('cannot decode key response (10)');
-        }
-        if (! isset($ao->pubKey[-3] /* cose_crv_y */)) {
-            $this->oops('cannot decode key response (11)');
-        }
-        if ($ao->pubKey[1] != 2 /* cose_kty_ec2 */) {
-            $this->oops('cannot decode key response (12)');
-        }
-
-        if ($ao->pubKey[3] != -7 /* cose_alg_ECDSA_w_SHA256 */) {
-            $this->oops('cannot decode key response (13)');
-        }
-        if ($ao->pubKey[-1] != 1 /* cose_crv_P256 */) {
-            $this->oops('cannot decode key response (14)');
-        }
-
-        /* assemblePublicKeyBytesData */
-        $x = $ao->pubKey[-2]->get_byte_string();
-        $y = $ao->pubKey[-3]->get_byte_string();
-        if (strlen($x) != 32 || strlen($y) != 32) {
-            $this->oops('cannot decode key response (15)');
-        }
-        $ao->attData->keyBytes = chr(4).$x.$y;
+        $ao->attData->keyBytes = self::COSEECDHAtoPKCS($cborPubKey);
 
         $rawId = self::arrayToString($info->rawId);
         if ($ao->attData->credId != $rawId) {
@@ -218,7 +185,7 @@ class WebAuthn
         }
 
         $publicKey = (object)array();
-        $publicKey->key = $this->pubkeyToPem($ao->attData->keyBytes);
+        $publicKey->key = $ao->attData->keyBytes;
         $publicKey->id = $info->rawId;
         //log($publicKey->key);
 
@@ -438,6 +405,50 @@ class WebAuthn
         $pem .= chunk_split(base64_encode($der), 64, "\x0A");
         $pem .= "-----END PUBLIC KEY-----\x0A";
         return $pem;
+    }
+
+    /**
+     * Convert COSE ECDHA to PKCS
+     * @param string binary string to be converted
+     * @return string converted public key
+     */
+    private static function COSEECDHAtoPKCS($binary)
+    {
+            $ao->pubKey = \CBOR\CBOREncoder::decode($cborPubKey);
+            if (! isset($ao->pubKey[1] /* cose_kty */)) {
+                $this->oops('cannot decode key response (7)');
+            }
+            if (! isset($ao->pubKey[3] /* cose_alg */)) {
+                $this->oops('cannot decode key response (8)');
+            }
+            if (! isset($ao->pubKey[-1] /* cose_crv */)) {
+                $this->oops('cannot decode key response (9)');
+            }
+            if (! isset($ao->pubKey[-2] /* cose_crv_x */)) {
+                $this->oops('cannot decode key response (10)');
+            }
+            if (! isset($ao->pubKey[-3] /* cose_crv_y */)) {
+                $this->oops('cannot decode key response (11)');
+            }
+            if ($ao->pubKey[1] != 2 /* cose_kty_ec2 */) {
+                $this->oops('cannot decode key response (12)');
+            }
+
+            if ($ao->pubKey[3] != -7 /* cose_alg_ECDSA_w_SHA256 */) {
+                $this->oops('cannot decode key response (13)');
+            }
+            if ($ao->pubKey[-1] != 1 /* cose_crv_P256 */) {
+                $this->oops('cannot decode key response (14)');
+            }
+
+            /* assemblePublicKeyBytesData */
+            $x = $ao->pubKey[-2]->get_byte_string();
+            $y = $ao->pubKey[-3]->get_byte_string();
+            if (strlen($x) != 32 || strlen($y) != 32) {
+                $this->oops('cannot decode key response (15)');
+            }
+            return $this->pubkeyToPem(chr(4).$x.$y);
+
     }
 
     /**
