@@ -2,6 +2,9 @@
 
 namespace Davidearl\WebAuthn;
 
+use phpseclib\Crypt\RSA;
+use phpseclib\Math\BigInteger;
+
 /**
 * @package davidearl\webauthn
 *
@@ -414,41 +417,56 @@ class WebAuthn
      */
     private function COSEECDHAtoPKCS($binary)
     {
-            $ao->pubKey = \CBOR\CBOREncoder::decode($cborPubKey);
-            if (! isset($ao->pubKey[1] /* cose_kty */)) {
-                $this->oops('cannot decode key response (7)');
-            }
-            if (! isset($ao->pubKey[3] /* cose_alg */)) {
-                $this->oops('cannot decode key response (8)');
-            }
-            if (! isset($ao->pubKey[-1] /* cose_crv */)) {
-                $this->oops('cannot decode key response (9)');
-            }
-            if (! isset($ao->pubKey[-2] /* cose_crv_x */)) {
-                $this->oops('cannot decode key response (10)');
-            }
-            if (! isset($ao->pubKey[-3] /* cose_crv_y */)) {
-                $this->oops('cannot decode key response (11)');
-            }
-            if ($ao->pubKey[1] != 2 /* cose_kty_ec2 */) {
-                $this->oops('cannot decode key response (12)');
-            }
+        $cosePubKey = \CBOR\CBOREncoder::decode($binary);
 
-            if ($ao->pubKey[3] != -7 /* cose_alg_ECDSA_w_SHA256 */) {
+        if (! isset($cosePubKey[1] /* cose_kty */)) {
+            $this->oops('cannot decode key response (7)');
+        }
+
+        if (! isset($cosePubKey[3] /* cose_alg */)) {
+            $this->oops('cannot decode key response (8)');
+        }
+
+        if (! isset($cosePubKey[-1] /* cose_crv */)) {
+            $this->oops('cannot decode key response (9)');
+        }
+
+        if (! isset($cosePubKey[-2] /* cose_crv_x */)) {
+            $this->oops('cannot decode key response (10)');
+        }
+
+        if (! isset($cosePubKey[-3] /* cose_crv_y */)) {
+            $this->oops('cannot decode key response (11)');
+        }
+
+        if ($cosePubKey[1] != 2 /* cose_kty_ec2 */) {
+            $this->oops('cannot decode key response (12)');
+        }
+
+        if ($cosePubKey[-1] != 1 /* cose_crv_P256 */) {
+            $this->oops('cannot decode key response (14)');
+        }
+
+        switch ($cosePubKey[3]) {
+            case self::ES256:
+                /* COSE Alg: ECDSA w/ SHA-256 */
+                $x = $cosePubKey[-2]->get_byte_string();
+                $y = $cosePubKey[-3]->get_byte_string();
+                if (strlen($x) != 32 || strlen($y) != 32) {
+                    $this->oops('cannot decode key response (15)');
+                }
+                return $this->pubkeyToPem(chr(4).$x.$y);
+                break;
+            case self::RS256:
+                /* COSE Alg: RSASSA-PKCS1-v1_5 w/ SHA-256 */
+                $e = new BigInteger(bin2hex($cosePubKey[-2]), 16);
+                $n = new BigInteger(bin2hex($cosePubKey[-1]), 16);
+                $rsa = new RSA();
+                $rsa->loadKey(compact('e', 'n'));
+                return $rsa->getPublicKey();
+            default:
                 $this->oops('cannot decode key response (13)');
-            }
-            if ($ao->pubKey[-1] != 1 /* cose_crv_P256 */) {
-                $this->oops('cannot decode key response (14)');
-            }
-
-            /* assemblePublicKeyBytesData */
-            $x = $ao->pubKey[-2]->get_byte_string();
-            $y = $ao->pubKey[-3]->get_byte_string();
-            if (strlen($x) != 32 || strlen($y) != 32) {
-                $this->oops('cannot decode key response (15)');
-            }
-            return $this->pubkeyToPem(chr(4).$x.$y);
-
+        }
     }
 
     /**
