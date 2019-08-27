@@ -431,14 +431,6 @@ class WebAuthn
             $this->oops('cannot decode key response (9)');
         }
 
-        if (! isset($cosePubKey[-2] /* cose_crv_x */)) {
-            $this->oops('cannot decode key response (10)');
-        }
-
-        if (! isset($cosePubKey[-3] /* cose_crv_y */)) {
-            $this->oops('cannot decode key response (11)');
-        }
-
         if ($cosePubKey[1] != 2 /* cose_kty_ec2 */) {
             $this->oops('cannot decode key response (12)');
         }
@@ -449,6 +441,13 @@ class WebAuthn
 
         switch ($cosePubKey[3]) {
             case self::ES256:
+                if (! isset($cosePubKey[-2] /* cose_crv_x */)) {
+                    $this->oops('cannot decode key response (10)');
+                }
+
+                if (! isset($cosePubKey[-3] /* cose_crv_y */)) {
+                    $this->oops('cannot decode key response (11)');
+                }
                 /* COSE Alg: ECDSA w/ SHA-256 */
                 $x = $cosePubKey[-2]->get_byte_string();
                 $y = $cosePubKey[-3]->get_byte_string();
