@@ -32,6 +32,8 @@ namespace Davidearl\WebAuthn;
 class WebAuthn
 {
 
+    const ES256 = -7;
+    const RS256 = -257; // Windows Hello support
     /**
     * construct object on which to operate
     *
@@ -79,10 +81,16 @@ class WebAuthn
         $result->rp = (object)array();
         $result->rp->name = $result->rp->id = $this->appid;
 
-        $result->pubKeyCredParams = array();
-        $result->pubKeyCredParams[0] = (object)array();
-        $result->pubKeyCredParams[0]->alg = -7;
-        $result->pubKeyCredParams[0]->type = 'public-key';
+        $result->pubKeyCredParams = [
+            [
+                'alg' => ES256,
+                'type' => 'public-key'
+            ],
+            [
+                'alg' => RS256,
+                'type' => 'public-key'
+            ]
+        ];
 
         $result->authenticatorSelection = (object)array();
         // $result->authenticatorSelection->authenticatorAttachment = 'cross-platform';
@@ -188,6 +196,7 @@ class WebAuthn
         if ($ao->pubKey[1] != 2 /* cose_kty_ec2 */) {
             $this->oops('cannot decode key response (12)');
         }
+
         if ($ao->pubKey[3] != -7 /* cose_alg_ECDSA_w_SHA256 */) {
             $this->oops('cannot decode key response (13)');
         }
@@ -450,7 +459,7 @@ class WebAuthn
           throw new \Exception("Neither random_bytes not openssl_random_pseudo_bytes exists. PHP too old? openssl PHP extension not installed?", 1);
       }
     }
-  
+
     /**
     * just an abbreviation to throw an error: never returns
     * @param string $s error message
