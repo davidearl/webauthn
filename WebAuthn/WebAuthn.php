@@ -440,17 +440,8 @@ class WebAuthn
                 if (!isset($cosePubKey[-3] /* cose_crv_y */)) {
                     $this->oops('y coordinate for curve missing');
                 }
-                /* COSE Alg: ECDSA w/ SHA-256 */
-                $x = $cosePubKey[-2]->get_byte_string();
-                $y = $cosePubKey[-3]->get_byte_string();
-                if (strlen($x) != 32 || strlen($y) != 32) {
-                    $this->oops('cannot decode key response (15)');
-                }
-                $tag = "\x04";
-                return $this->pubkeyToPem($tag.$x.$y);
-                break;
-            case self::RS256:
-                /* COSE Alg: RSASSA-PKCS1-v1_5 w/ SHA-256 */
+        switch ($cosePubKey[3]) {
+            case self::ES256:
                 if (!isset($cosePubKey[-2])) {
                     $this->oops('RSA Exponent missing');
                 }
