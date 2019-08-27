@@ -2,6 +2,9 @@
 
 namespace Davidearl\WebAuthn;
 
+use phpseclib\Crypt\RSA;
+use phpseclib\Math\BigInteger;
+
 /**
 * @package davidearl\webauthn
 *
@@ -32,6 +35,8 @@ namespace Davidearl\WebAuthn;
 class WebAuthn
 {
 
+    const ES256 = -7;
+    const RS256 = -257; // Windows Hello support
     /**
     * construct object on which to operate
     *
@@ -79,10 +84,16 @@ class WebAuthn
         $result->rp = (object)array();
         $result->rp->name = $result->rp->id = $this->appid;
 
-        $result->pubKeyCredParams = array();
-        $result->pubKeyCredParams[0] = (object)array();
-        $result->pubKeyCredParams[0]->alg = -7;
-        $result->pubKeyCredParams[0]->type = 'public-key';
+        $result->pubKeyCredParams = [
+            [
+                'alg' => self::ES256,
+                'type' => 'public-key'
+            ],
+            [
+                'alg' => self::RS256,
+                'type' => 'public-key'
+            ]
+        ];
 
         $result->authenticatorSelection = (object)array();
         // $result->authenticatorSelection->authenticatorAttachment = 'cross-platform';
@@ -169,39 +180,7 @@ class WebAuthn
         $ao->attData->credId = substr($bs, 55, $ao->attData->credIdLen);
         $cborPubKey  = substr($bs, 55+$ao->attData->credIdLen); // after credId to end of string
 
-        $ao->pubKey = \CBOR\CBOREncoder::decode($cborPubKey);
-        if (! isset($ao->pubKey[1] /* cose_kty */)) {
-            $this->oops('cannot decode key response (7)');
-        }
-        if (! isset($ao->pubKey[3] /* cose_alg */)) {
-            $this->oops('cannot decode key response (8)');
-        }
-        if (! isset($ao->pubKey[-1] /* cose_crv */)) {
-            $this->oops('cannot decode key response (9)');
-        }
-        if (! isset($ao->pubKey[-2] /* cose_crv_x */)) {
-            $this->oops('cannot decode key response (10)');
-        }
-        if (! isset($ao->pubKey[-3] /* cose_crv_y */)) {
-            $this->oops('cannot decode key response (11)');
-        }
-        if ($ao->pubKey[1] != 2 /* cose_kty_ec2 */) {
-            $this->oops('cannot decode key response (12)');
-        }
-        if ($ao->pubKey[3] != -7 /* cose_alg_ECDSA_w_SHA256 */) {
-            $this->oops('cannot decode key response (13)');
-        }
-        if ($ao->pubKey[-1] != 1 /* cose_crv_P256 */) {
-            $this->oops('cannot decode key response (14)');
-        }
-
-        /* assemblePublicKeyBytesData */
-        $x = $ao->pubKey[-2]->get_byte_string();
-        $y = $ao->pubKey[-3]->get_byte_string();
-        if (strlen($x) != 32 || strlen($y) != 32) {
-            $this->oops('cannot decode key response (15)');
-        }
-        $ao->attData->keyBytes = chr(4).$x.$y;
+        $ao->attData->keyBytes = self::COSEECDHAtoPKCS($cborPubKey);
 
         $rawId = self::arrayToString($info->rawId);
         if ($ao->attData->credId != $rawId) {
@@ -209,7 +188,7 @@ class WebAuthn
         }
 
         $publicKey = (object)array();
-        $publicKey->key = $this->pubkeyToPem($ao->attData->keyBytes);
+        $publicKey->key = $ao->attData->keyBytes;
         $publicKey->id = $info->rawId;
         //log($publicKey->key);
 
@@ -432,6 +411,66 @@ class WebAuthn
     }
 
     /**
+     * Convert COSE ECDHA to PKCS
+     * @param string binary string to be converted
+     * @return string converted public key
+     */
+    private function COSEECDHAtoPKCS($binary)
+    {
+        $cosePubKey = \CBOR\CBOREncoder::decode($binary);
+
+        if (! isset($cosePubKey[1] /* cose_kty */)) {
+            $this->oops('cannot decode key response (7)');
+        }
+
+        if (! isset($cosePubKey[3] /* cose_alg */)) {
+            $this->oops('cannot decode key response (8)');
+        }
+
+        if (! isset($cosePubKey[-1] /* cose_crv */)) {
+            $this->oops('cannot decode key response (9)');
+        }
+
+        if (! isset($cosePubKey[-2] /* cose_crv_x */)) {
+            $this->oops('cannot decode key response (10)');
+        }
+
+        if (! isset($cosePubKey[-3] /* cose_crv_y */)) {
+            $this->oops('cannot decode key response (11)');
+        }
+
+        if ($cosePubKey[1] != 2 /* cose_kty_ec2 */) {
+            $this->oops('cannot decode key response (12)');
+        }
+
+        if ($cosePubKey[-1] != 1 /* cose_crv_P256 */) {
+            $this->oops('cannot decode key response (14)');
+        }
+
+        switch ($cosePubKey[3]) {
+            case self::ES256:
+                /* COSE Alg: ECDSA w/ SHA-256 */
+                $x = $cosePubKey[-2]->get_byte_string();
+                $y = $cosePubKey[-3]->get_byte_string();
+                if (strlen($x) != 32 || strlen($y) != 32) {
+                    $this->oops('cannot decode key response (15)');
+                }
+                $tag = "\x04";
+                return $this->pubkeyToPem($tag.$x.$y);
+                break;
+            case self::RS256:
+                /* COSE Alg: RSASSA-PKCS1-v1_5 w/ SHA-256 */
+                $e = new BigInteger(bin2hex($cosePubKey[-2]), 16);
+                $n = new BigInteger(bin2hex($cosePubKey[-1]), 16);
+                $rsa = new RSA();
+                $rsa->loadKey(compact('e', 'n'));
+                return $rsa->getPublicKey();
+            default:
+                $this->oops('cannot decode key response (13)');
+        }
+    }
+
+    /**
     * shim for random_bytes which doesn't exist pre php7
     * @param int $length the number of bytes required
     * @return string length cryptographically random bytes
@@ -450,7 +489,7 @@ class WebAuthn
           throw new \Exception("Neither random_bytes not openssl_random_pseudo_bytes exists. PHP too old? openssl PHP extension not installed?", 1);
       }
     }
-  
+
     /**
     * just an abbreviation to throw an error: never returns
     * @param string $s error message
