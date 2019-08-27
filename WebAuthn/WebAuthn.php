@@ -455,7 +455,8 @@ class WebAuthn
                 if (strlen($x) != 32 || strlen($y) != 32) {
                     $this->oops('cannot decode key response (15)');
                 }
-                return $this->pubkeyToPem(chr(4).$x.$y);
+                $tag = "\x04";
+                return $this->pubkeyToPem($tag.$x.$y);
                 break;
             case self::RS256:
                 /* COSE Alg: RSASSA-PKCS1-v1_5 w/ SHA-256 */
