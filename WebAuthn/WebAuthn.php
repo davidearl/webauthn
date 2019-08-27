@@ -83,11 +83,11 @@ class WebAuthn
 
         $result->pubKeyCredParams = [
             [
-                'alg' => ES256,
+                'alg' => self::ES256,
                 'type' => 'public-key'
             ],
             [
-                'alg' => RS256,
+                'alg' => self::RS256,
                 'type' => 'public-key'
             ]
         ];
