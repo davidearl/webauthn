@@ -474,8 +474,8 @@ class WebAuthn
                 if (!isset($cosePubKey[-1])) {
                     $this->oops('RSA Modulus missing');
                 }
-                $e = new BigInteger(bin2hex($cosePubKey[-2]), 16);
-                $n = new BigInteger(bin2hex($cosePubKey[-1]), 16);
+                $e = new BigInteger(bin2hex($cosePubKey[-2]->get_byte_string()), 16);
+                $n = new BigInteger(bin2hex($cosePubKey[-1]->get_byte_string()), 16);
                 $rsa = new RSA();
                 $rsa->loadKey(compact('e', 'n'));
                 return $rsa->getPublicKey();
@@ -512,6 +512,7 @@ class WebAuthn
     */
     private function oops($s, $c=0)
     {
+        error_log("oops: {$s} {$c}");
         throw new \Exception($s, $c);
     }
 
