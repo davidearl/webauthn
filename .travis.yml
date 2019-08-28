@@ -14,3 +14,7 @@ before_script:
   - composer require atoum/atoum
 script:
   - vendor/bin/atoum -d tests/units/
+
+branches:
+  only:
+  - master
