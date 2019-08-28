@@ -8,7 +8,7 @@ php:
 
 install:
   - composer self-update
-  - composer install --prefer-source --no-interaction --dev
+  - composer install --prefer-source --no-interaction
 
 before_script:
   - composer require atoum/atoum
