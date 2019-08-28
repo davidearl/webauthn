@@ -17,5 +17,8 @@
             "Davidearl\\WebAuthn\\": "WebAuthn"
         }
     },
-    "license": "MIT"
+    "license": "MIT",
+    "require-dev": {
+        "atoum/atoum": "^3.3"
+    }
 }
