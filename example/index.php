@@ -52,7 +52,7 @@ if (! empty($_POST)) {
     case isset($_POST['registerusername']):
       /* initiate the registration */
       $username = $_POST['registerusername'];
-
+	  $crossplatform = ! empty($_POST['crossplatform']) && $_POST['crossplatform'] == 'Yes';
       $userid = md5(time() . '-'. rand(1,1000000000));
 
       if (file_exists(userpath($username))) {
@@ -68,7 +68,7 @@ if (! empty($_POST)) {
                                                           'id'=> $userid,
                                                           'webauthnkeys' => $webauthn->cancel()]));
       $_SESSION['username'] = $username;
-      $j = ['challenge' => $webauthn->prepareChallengeForRegistration($username, $userid)];
+	  $j = ['challenge' => $webauthn->prepareChallengeForRegistration($username, $userid, $crossplatform)];
       break;
 
     case isset($_POST['register']):
@@ -178,6 +178,10 @@ h2 {
   padding: 10px;
   font-weight: bold;
 }
+.chint {
+  max-width: 450px;
+  margin-left: 2em;
+}
 </style>
 
 </head>
@@ -196,7 +200,12 @@ h2 {
 	  <h2>User Registration</h2>
 	  <form id='iregisterform' action='/' method='POST'>
 		<label> enter a new username (eg email address): <input type='text' name='registerusername'></label><br>
-		<input type='submit' value='Submit'>
+        cross-platform?<sup>*</sup> <select name='cp'>
+          <option value=''>(choose one)</option>
+          <option>No</option>
+          <option>Yes</option>
+        </select><br>
+		<input type='submit' value='Submit'><br>
 	  </form>
 	  <div class='cdokey' id='iregisterdokey'>
 		Do your thing: press button on key, swipe fingerprint or whatever
@@ -217,6 +226,15 @@ h2 {
 
   </div>
 
+  <p class='chint'>* Use cross-platform 'Yes' when you have a removable device, like
+  a Yubico key, which you would want to use to login on different
+  computers; say 'No' when your device is attached to the computer (in
+  that case in Windows 10 1903 release, your login
+  is linked to Windows Hello and you can use any device it supports
+  whether registered with that device or not, but only on that
+  computer). The choice affects which device(s) are offered by the
+  browser and/or computer security system.</p>
+  
 <script type="application/javascript">
 <?php
 echo file_get_contents('../src/webauthnregister.js');
@@ -234,11 +252,17 @@ echo file_get_contents('../src/webauthnauthenticate.js');
 	$('#iregisterform').submit(function(ev){
 		var self = $(this);
 		ev.preventDefault();
+		var cp = $('select[name=cp]').val();
+		if (cp == "") {
+			$('.cerror').show().text("Please choose cross-platform setting - see note below about what this means");
+			return;
+		}
+		
 		$('.cerror').empty().hide();
 
 		$.ajax({url: '/',
 				method: 'POST',
-				data: {registerusername: self.find('[name=registerusername]').val()},
+				data: {registerusername: self.find('[name=registerusername]').val(), crossplatform: cp},
 				dataType: 'json',
 				success: function(j){
 					$('#iregisterform,#iregisterdokey').toggle();

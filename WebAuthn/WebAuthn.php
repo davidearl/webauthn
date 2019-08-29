@@ -70,9 +70,12 @@ class WebAuthn
     * @param $username string by which the user is known potentially displayed on the hardware key
     * @param $userid string by which the user can be uniquely identified. Don't use email address as this can change,
     *                user perhaps the database record id
+    * @param $crossPlatform bool default=FALSE, whether to link the identity to the key (TRUE, so it 
+    *               can be used cross-platofrm, on different computers) or the platform (FALSE, only on 
+    *               this computer, but with any available authentication device, e.g. known to Windows Hello)
     * @return string pass this JSON string back to the browser
     */
-    public function prepareChallengeForRegistration($username, $userid)
+  public function prepareChallengeForRegistration($username, $userid, $crossPlatform=FALSE)
     {
         $result = (object)array();
         $rbchallenge = self::randomBytes(16);
@@ -96,8 +99,7 @@ class WebAuthn
         ];
 
         $result->authenticatorSelection = (object)array();
-        // $result->authenticatorSelection->authenticatorAttachment = 'cross-platform';
-        /* that line would restrict to external devices, not including built-in ones like integral fingerprint reader */
+        if ($crossPlatform) { $result->authenticatorSelection->authenticatorAttachment = 'cross-platform'; }
 
         $result->authenticatorSelection->requireResidentKey = false;
         $result->authenticatorSelection->userVerification = 'discouraged';
