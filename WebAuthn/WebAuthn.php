@@ -100,7 +100,7 @@ class WebAuthn
         /* that line would restrict to external devices, not including built-in ones like integral fingerprint reader */
 
         $result->authenticatorSelection->requireResidentKey = false;
-        $result->authenticatorSelection->userVerification = 'preferred';
+        $result->authenticatorSelection->userVerification = 'discouraged';
 
         $result->attestation = null;
         $result->timeout = 60000;
@@ -156,7 +156,7 @@ class WebAuthn
 
         if ($ao->fmt == 'fido-u2f') {
             $this->oops("cannot decode FIDO format responses, sorry");
-        } elseif ($ao->fmt != 'none') {
+        } elseif ($ao->fmt != 'none' && $ao->fmt != 'packed') {
             $this->oops('cannot decode key response (4)');
         }
 
@@ -246,7 +246,7 @@ class WebAuthn
         $publickey->challenge = self::stringToArray(self::randomBytes(16));
         $publickey->timeout = 60000;
         $publickey->allowCredentials = $allows;
-        $publickey->userVerification = 'preferred';
+        $publickey->userVerification = 'discouraged';
         $publickey->extensions = (object)array();
         $publickey->extensions->txAuthSimple = 'Execute order 66';
         $publickey->rpId = str_replace('https://', '', $this->appid);
