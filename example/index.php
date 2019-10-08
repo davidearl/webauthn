@@ -77,8 +77,8 @@ if (! empty($_POST)) {
       $user = getuser($_SESSION['username']);
 
       /* get a device name from the user */	    
-      $device_name = (isset($_POST['device_name']) && $_POST['device_name'] != '') 
-	       ? $_POST['device_name'] : '';
+      $device_name = (isset($_POST['dname']) && $_POST['dname'] != '') 
+	       ? $_POST['dname'] : '';
 
       /* The heart of the matter */
       $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys, $device_name);
