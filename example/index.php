@@ -76,8 +76,12 @@ if (! empty($_POST)) {
       if (empty($_SESSION['username'])) { oops('username not set'); }
       $user = getuser($_SESSION['username']);
 
+      /* get a device name from the user */	    
+      $device_name = (isset($_POST['device_name']) && $_POST['device_name'] != '') 
+	       ? $_POST['device_name'] : '';
+
       /* The heart of the matter */
-      $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys);
+      $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys, $device_name);
 
       /* Save the result to enable a challenge to be raised agains this
          newly created key in order to log in */
