@@ -273,9 +273,10 @@ echo file_get_contents('../src/webauthnauthenticate.js');
 					/* activate the key and get the response */
 					webauthnRegister(j.challenge, function(success, info){
 						if (success) {
+						    var device_name = prompt('Provide a name for this device (e.g. "John\'s phone" o "Macbook Sandra")');
 							$.ajax({url: '/',
 									method: 'POST',
-									data: {register: info},
+									data: {register: info, dname: device_name},
 									dataType: 'json',
 									success: function(j){
 										$('#iregisterform,#iregisterdokey').toggle();
