@@ -122,9 +122,12 @@ class WebAuthn
     * @param string $userwebauthn the exisitng webauthn field for the user from your
     *        database (it's actaully a JSON string, but that's entirely internal to
     *        this code)
+    * @param string $device_name the optional device name given by the user during 
+    *        the registration. The device name can be request with a prompt (check
+    *        the example for an implementation)
     * @return string modified to store in the user's webauthn field in your database
     */
-    public function register($info, $userwebauthn)
+    public function register($info, $userwebauthn, $device_name = '')
     {
         if (! is_string($info)) {
             $this->oops('info must be a string', 1);
@@ -192,7 +195,10 @@ class WebAuthn
         $publicKey = (object)array();
         $publicKey->key = $ao->attData->keyBytes;
         $publicKey->id = $info->rawId;
-        //log($publicKey->key);
+        
+        if(is_string($device_name) && trim($device_name) != '') {
+            $publicKey->dname = trim($device_name);
+        }
 
         if (empty($userwebauthn)) {
             $userwebauthn = [$publicKey];
