@@ -195,6 +195,7 @@ class WebAuthn
         $publicKey = (object)array();
         $publicKey->key = $ao->attData->keyBytes;
         $publicKey->id = $info->rawId;
+        $publicKey->datetime = date('c');
         
         if(is_string($device_name) && trim($device_name) != '') {
             $publicKey->dname = trim($device_name);
