@@ -1,6 +1,6 @@
 # PHP webauthn implementation
 
-* Live example: [https://webauthn.savesnine.info](https://webauthn.savesnine.info).
+* Live example: [https://webauthn.davidearl.uk](https://webauthn.davidearl.uk).
 
 [webauthn](https://www.w3.org/TR/webauthn/) allows for log in or second factor
 authentication for web sites that support the protocol in browsers that also support it,
@@ -67,7 +67,7 @@ in particular)
 
 ## Example
 
-The example code is live at [https://webauthn.savesnine.info](https://webauthn.savesnine.info).
+The example code is live at [https://webauthn.davidearl.uk](https://webauthn.davidearl.uk).
 
 To host the example yourself,
 * put the code in the document hierarchy for your server (say `https://example.com/webauthn`),
