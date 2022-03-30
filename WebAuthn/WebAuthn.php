@@ -184,6 +184,23 @@ class WebAuthn
 
         $ao->attData->keyBytes = self::COSEECDHAtoPKCS($cborPubKey);
 
+        if (is_null($ao->attData->keyBytes)) {
+          /* There is a bug in Firefox whereby it provides only one byte for the aaguid field.
+             This means everything else is shifted down by 15 bytes, resulting in a failure to pick up the
+             key algortihm field in COSEECDHAtoPKCS. So if that happens, try again with just that one byte,
+             and only then produce an error if that also fails.
+             Thank you: https://www.antradar.com/blog-firefox-webauthn-incompability
+           */
+          $ao->attData->aaguid = substr($bs, 37, 1);
+          $ao->attData->credIdLen = (ord($bs[38])<<8)+ord($bs[39]);
+          $ao->attData->credId = substr($bs, 40, $ao->attData->credIdLen);
+          $cborPubKey  = substr($bs, 40+$ao->attData->credIdLen); // after credId to end of string
+          $ao->attData->keyBytes = self::COSEECDHAtoPKCS($cborPubKey);
+          if (is_null($ao->attData->keyBytes)) {
+            $this->oops('cannot decode key response (8)');
+          }
+        }
+        
         $rawId = self::arrayToString($info->rawId);
         if ($ao->attData->credId != $rawId) {
             $this->oops('cannot decode key response (16)');
@@ -422,7 +439,7 @@ class WebAuthn
         $cosePubKey = \CBOR\CBOREncoder::decode($binary);
 
         if (! isset($cosePubKey[3] /* cose_alg */)) {
-            $this->oops('cannot decode key response (8)');
+            return NULL; 
         }
 
         switch ($cosePubKey[3]) {
