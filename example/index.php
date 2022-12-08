@@ -40,6 +40,10 @@ function getuser($username){
   return $user;
 }
 
+function saveuser($user){
+  file_put_contents(userpath($user->name), json_encode($user));
+}
+
 /* A post is an ajax request, otherwise display the page */
 if (! empty($_POST)) {
 
@@ -52,7 +56,7 @@ if (! empty($_POST)) {
     case isset($_POST['registerusername']):
       /* initiate the registration */
       $username = $_POST['registerusername'];
-	  $crossplatform = ! empty($_POST['crossplatform']) && $_POST['crossplatform'] == 'Yes';
+      $crossplatform = ! empty($_POST['crossplatform']) && $_POST['crossplatform'] == 'Yes';
       $userid = md5(time() . '-'. rand(1,1000000000));
 
       if (file_exists(userpath($username))) {
@@ -64,11 +68,12 @@ if (! empty($_POST)) {
          but you'd probably do that from a user profile page rather than initial
          registration. The procedure is the same, just don't cancel existing
          keys like this.*/
-      file_put_contents(userpath($username), json_encode(['name'=> $username,
-                                                          'id'=> $userid,
-                                                          'webauthnkeys' => $webauthn->cancel()]));
+      $user = (object)['name'=> $username,
+                       'id'=> $userid,
+                       'webauthnkeys' => $webauthn->cancel()];
+      saveuser($user);
       $_SESSION['username'] = $username;
-	  $j = ['challenge' => $webauthn->prepareChallengeForRegistration($username, $userid, $crossplatform)];
+      $j = ['challenge' => $webauthn->prepareChallengeForRegistration($username, $userid, $crossplatform)];
       break;
 
     case isset($_POST['register']):
@@ -81,7 +86,7 @@ if (! empty($_POST)) {
 
       /* Save the result to enable a challenge to be raised agains this
          newly created key in order to log in */
-      file_put_contents(userpath($user->name), json_encode($user));
+      saveuser($user);
       $j = 'ok';
 
       break;
@@ -97,6 +102,9 @@ if (! empty($_POST)) {
          people to interrogate your user database for existence */
 
       $j['challenge'] = $webauthn->prepareForLogin($user->webauthnkeys);
+
+      /* Save user again, which sets server state to include the challenge expected */
+      saveuser($user);
       break;
 
     case isset($_POST['login']):
@@ -109,6 +117,8 @@ if (! empty($_POST)) {
         echo 'failed to authenticate with that key';
         exit;
       }
+      /* Save user again, which sets server state to include the challenge expected */
+      saveuser($user);
       $j = 'ok';
 
       break;

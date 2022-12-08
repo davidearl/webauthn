@@ -42,6 +42,15 @@ enough to put into a convenient JSON form to transport to the server),
 and I thought I would share it. Several others have since helped with support for broader
 application with fingerprints and Windows Hello.
 
+## Changes 8 Dec 2022
+
+To prevent a possible replay of a login, the user's webauthn string is
+now passed by reference to prepareForLogin and authenticate, both of
+which modify it. The string should now be saved with the user in your
+user after these calls, as well as when registering. This saves and
+then cross-checks and clears the challenge data sent to the key, so
+that it cannot be re-used.
+
 ## Changes from branch 0.1.0
 
 The original code was updated in August 2019 by a number of
@@ -63,7 +72,8 @@ This requires
 * [phpseclib](https://github.com/phpseclib/phpseclib), ditto
 * A recent openssl included in PHP ([openssl_verify](http://php.net/manual/en/function.openssl-verify.php)
 in particular)
-* PHP 5.6 or later (preferably PHP 7)
+* PHP 5.6 or later (preferably PHP 7.4 or 8.1; not tested with PHP 8.2, which has some significant changes
+  to property declarations)
 
 ## Example
 
