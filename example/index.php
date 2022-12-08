@@ -5,7 +5,7 @@ If you put the whole webauthn directory in the www document root and put an inde
 which just includes this file, it should then work. Alternatively set it as a link to this file.
 */
 
-require_once('../vendor/autoload.php');
+require_once(dirname(__DIR__).'/vendor/autoload.php');
 
 /* In this example, the user database is simply a directory of json files
   named by their username (urlencoded so there are no weird characters
@@ -237,8 +237,8 @@ h2 {
   
 <script type="application/javascript">
 <?php
-echo file_get_contents('../src/webauthnregister.js');
-echo file_get_contents('../src/webauthnauthenticate.js');
+echo file_get_contents(dirname(__DIR__).'/src/webauthnregister.js');
+echo file_get_contents(dirname(__DIR__).'/src/webauthnauthenticate.js');
 ?>
 
 </script>
