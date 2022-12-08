@@ -19,6 +19,6 @@
     },
     "license": "MIT",
     "require-dev": {
-        "atoum/atoum": "^3.3"
+        "atoum/atoum": "^4.0.3"
     }
 }
