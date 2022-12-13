@@ -2,8 +2,9 @@
 
 namespace Davidearl\WebAuthn;
 
-use phpseclib\Crypt\RSA;
-use phpseclib\Math\BigInteger;
+//use phpseclib\Crypt\RSA;
+use phpseclib3\Crypt\PublicKeyLoader;
+use phpseclib3\Math\BigInteger;
 
 /**
 * @package davidearl\webauthn
@@ -518,9 +519,7 @@ class WebAuthn
                 }
                 $e = new BigInteger(bin2hex($cosePubKey[-2]->get_byte_string()), 16);
                 $n = new BigInteger(bin2hex($cosePubKey[-1]->get_byte_string()), 16);
-                $rsa = new RSA();
-                $rsa->loadKey(compact('e', 'n'));
-                return $rsa->getPublicKey();
+                return (string)PublicKeyLoader::load(compact('e', 'n'));
             default:
                 $this->oops('cannot decode key response (13)');
         }

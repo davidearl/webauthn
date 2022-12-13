@@ -72,7 +72,7 @@ This requires
 * [phpseclib](https://github.com/phpseclib/phpseclib), ditto
 * A recent openssl included in PHP ([openssl_verify](http://php.net/manual/en/function.openssl-verify.php)
 in particular)
-* PHP 5.6 or later (preferably PHP 7.4 or 8.1; not tested with PHP 8.2, which has some significant changes
+* PHP 5.6.1 or later (preferably PHP 7.4 or 8.1; not tested with PHP 8.2, which has some significant changes
   to property declarations)
 
 ## Example
