@@ -42,7 +42,7 @@ function webauthnRegister(key, callback){
 			// console.log("Credentials.Create response: ", aNewCredentialInfo);
 			var cd = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(aNewCredentialInfo.response.clientDataJSON)));
 			if (key.b64challenge != cd.challenge) {
-				callback(false, 'key returned something unexpected (1)');
+				return callback(false, 'key returned something unexpected (1)');
 			}
 			if ('https://'+key.publicKey.rp.name != cd.origin) {
 				return callback(false, 'key returned something unexpected (2)');
