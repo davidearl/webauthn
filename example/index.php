@@ -81,8 +81,12 @@ if (! empty($_POST)) {
       if (empty($_SESSION['username'])) { oops('username not set'); }
       $user = getuser($_SESSION['username']);
 
+      /* get a device name from the user */	    
+      $device_name = (isset($_POST['dname']) && $_POST['dname'] != '') 
+	       ? $_POST['dname'] : '';
+
       /* The heart of the matter */
-      $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys);
+      $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys, $device_name);
 
       /* Save the result to enable a challenge to be raised agains this
          newly created key in order to log in */
@@ -279,9 +283,10 @@ echo file_get_contents(dirname(__DIR__).'/src/webauthnauthenticate.js');
 					/* activate the key and get the response */
 					webauthnRegister(j.challenge, function(success, info){
 						if (success) {
+						    var device_name = prompt('Provide a name for this device (e.g. "John\'s phone" o "Macbook Sandra")');
 							$.ajax({url: '/',
 									method: 'POST',
-									data: {register: info},
+									data: {register: info, dname: device_name},
 									dataType: 'json',
 									success: function(j){
 										$('#iregisterform,#iregisterdokey').toggle();
