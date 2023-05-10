@@ -51,10 +51,8 @@ class WebAuthn
         if (! is_string($appid)) {
             $this->oops('appid must be a string');
         }
-        $this->appid = $appid;
-        if (strpos($this->appid, 'https://') === 0) {
-            $this->appid = substr($this->appid, 8); /* drop the https:// */
-        }
+        // "http://localhost" is considered a secure domain, otherwise https is mandatory.
+        $this->appid = preg_replace('|^https?://|', '', $appid);
     }
 
     /**
