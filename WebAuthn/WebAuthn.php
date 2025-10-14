@@ -38,6 +38,9 @@ class WebAuthn
 
     const ES256 = -7;
     const RS256 = -257; // Windows Hello support
+
+    var $appid;
+
     /**
     * construct object on which to operate
     *
