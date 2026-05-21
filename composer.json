@@ -1,6 +1,6 @@
 {
     "name": "davidearl/webauthn",
-    "description": "An implementation of webauthn in PHP on the server side (e.g Yubico 2 and Google Titan keys)",
+    "description": "An implementation of webauthn in PHP on the server side (for passkeys)",
     "type": "library",
     "require": {
         "php": ">=5.6.1",

@@ -4,25 +4,22 @@
 
 [webauthn](https://www.w3.org/TR/webauthn/) allows for log in or second factor
 authentication for web sites that support the protocol in browsers that also support it,
-using a physical key (such as a [Yubikey 2 security
-key](https://www.yubico.com/product/security-key-by-yubico/) or [Google's Titan](https://cloud.google.com/titan-security-key/)
-USB key), biometrics such as fingerprints and face recognition, and now even your Windows 10 login PIN.
+using passkeys (including physical key (such as a Yubikey), biometrics such as fingerprints and
+face recognition, and even a Windows 11 login PIN.
 
 Webauthn was [announced for Firefox
 60](https://blog.mozilla.org/blog/2018/05/09/firefox-gets-down-to-business-and-its-personal/)
 in May 2018 and also later added to Chrome 67 later in 2018.
 
-Windows 10 version 1903 distributed in summer 2019 links the Windows password-less login system to webauthn,
-meaning that the same methods used to log in to Windows 10 can now also be used to log in to (or as second factor
-authentication for) web sites supporting webauthn. Somewhere along the line Android also added webauthn
-support for fingerprint readers. Chrome and Firefox on Mac also support webauthn via MacBook built-in
-fingerprint readers and also USB keys (Yubico 2/5, Titan). Sadly, iOS is lagging behind as of August 2019:
-nothing on iPhone or iPad supports webauthn, to my knowledge.
+While Windows 10 version 1903 distributed in summer 2019 was the first
+to support Windows Hello with webauthn, it is now ubiquitous, and
+known as Passkeys. They can be managed by the operating system or by a
+password manager.
 
-The idea of the age of
-password-less logins was widely broadcast in the technical press when Firefox 60 first came out. But
-the reality is the whole thing is just too complicated for easy
-adoption. It needs another layer to simplify it for routine use.
+The idea of the age of password-less logins was widely broadcast in
+the technical press when Firefox 60 first came out. But the reality is
+the whole thing is just too complicated for easy adoption. It needs
+another layer to simplify it for routine use.
 
 There are a couple examples in Javascript (see the
 ["coffee" example](https://webauthn.bin.coffee/)). But the whole point is that the
@@ -41,6 +38,14 @@ class for Yubico 2 keys, while doing the minimum at the browser side (just unpac
 enough to put into a convenient JSON form to transport to the server),
 and I thought I would share it. Several others have since helped with support for broader
 application with fingerprints and Windows Hello.
+
+## Changes 21 May 2026
+
+It no longer makes sense to restrict how the keys are accessed. The
+ubiquity of passkeys means we can delegate that to the operaitng
+system and/or password manager. So that code, as well as the
+cross-platform complications, has been removed.
+
 
 ## Changes 8 Dec 2022
 

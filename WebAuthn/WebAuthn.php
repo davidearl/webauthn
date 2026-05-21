@@ -77,6 +77,7 @@ class WebAuthn
     * @param $crossPlatform bool default=FALSE, whether to link the identity to the key (TRUE, so it 
     *               can be used cross-platofrm, on different computers) or the platform (FALSE, only on 
     *               this computer, but with any available authentication device, e.g. known to Windows Hello)
+    *               ***It rarely no makes sense to set this at all***
     * @return string pass this JSON string back to the browser
     */
   public function prepareChallengeForRegistration($username, $userid, $crossPlatform=FALSE)
@@ -248,7 +249,8 @@ class WebAuthn
     {
         $allow = (object)array();
         $allow->type = 'public-key';
-        $allow->transports = array('usb','nfc','ble','internal');
+        /* $allow->transports = array('usb','nfc','ble','internal');
+           ... with the ubiquity of passkeys, it no longer makes sense to restrict transports */
         $allow->id = null;
         $allows = array();
 
