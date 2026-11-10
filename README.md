@@ -39,6 +39,17 @@ enough to put into a convenient JSON form to transport to the server),
 and I thought I would share it. Several others have since helped with support for broader
 application with fingerprints and Windows Hello.
 
+## Changes 10 November 2026
+
+Breaking change requiring server-side storage of the result of prepareChallengeForRegistration()
+for cross-checking against what is presented back to register(), which has that as an
+extra parameter.
+
+Additional checks in authentication don't require any client changes.
+
+Also allow 64 characters and up for authenticate response signature, as apparently
+they can occasionally be less than the original 70.
+
 ## Changes 21 May 2026
 
 It no longer makes sense to restrict how the keys are accessed. The

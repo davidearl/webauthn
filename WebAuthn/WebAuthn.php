@@ -78,7 +78,8 @@ class WebAuthn
     *               can be used cross-platofrm, on different computers) or the platform (FALSE, only on 
     *               this computer, but with any available authentication device, e.g. known to Windows Hello)
     *               ***It rarely no makes sense to set this at all***
-    * @return string pass this JSON string back to the browser
+    * @return string pass this JSON string back to the browser, and also a server-saved copy to register()
+    *               on being called back
     */
   public function prepareChallengeForRegistration($username, $userid, $crossPlatform=FALSE)
     {
@@ -127,9 +128,11 @@ class WebAuthn
     * @param string $userwebauthn the exisitng webauthn field for the user from your
     *        database (it's actaully a JSON string, but that's entirely internal to
     *        this code)
+    * @param string $expectedChallenge copy of the json string returned by prepareChallengeForRegistration for
+    *        this registration, held on the server.
     * @return string modified to store in the user's webauthn field in your database
     */
-    public function register($info, $userwebauthn)
+    public function register($info, $userwebauthn, $expectedChallenge)
     {
         if (! is_string($info)) {
             $this->oops('info must be a string', 1);
@@ -144,6 +147,16 @@ class WebAuthn
         if (empty($info->rawId)) {
             $this->oops('no rawId in info');
         }
+
+        if (empty($expectedChallenge)) {
+          $this->oops('missing data from prepareChallengeForRegistration');
+        }
+        /* webauthnregister.js sends the parsed clientDataJSON object; also accept raw bytes */
+        $cdj = isset($info->response->clientDataJSON) ? $info->response->clientDataJSON : null;
+        if (is_array($cdj)) {
+          $cdj = $this->clientDataFromBytes($cdj);
+        }
+        $this->checkClientData($cdj, 'webauthn.create', json_decode($expectedChallenge)->b64challenge ?? '');
 
         /* check response from key and store as new identity. This is a hex string representing the raw CBOR
         attestation object received from the key */
@@ -326,33 +339,23 @@ class WebAuthn
             $this->oops("no key with id ".implode(',', $info->rawId));
         }
 
-        /* cross-check challenge */
-        $oc = rtrim(strtr(base64_encode(self::arrayToString($info->originalChallenge)), '+/', '-_'), '=');
-        if ($oc != $info->response->clientData->challenge) {
-            $this->oops("challenge mismatch");
+        /* The challenge, type and origin must be taken from the clientDataJSON bytes that the signature
+           covers (see below), never from the separately supplied, unsigned clientData copy. The challenge
+           must be the one stored by prepareForLogin, which therefore must have been saved. */
+        if (empty($key->challenge) || ! is_string($key->challenge)) {
+            $this->oops('no login in progress (was userwebauthn saved after prepareForLogin?)');
         }
+        $this->checkClientData(
+            $this->clientDataFromBytes(
+                isset($info->response->clientDataJSONarray) ? $info->response->clientDataJSONarray : null
+            ),
+            'webauthn.get',
+            $key->challenge
+        );
 
-        /* Does the challenge Correspond to the one we stored for the user? If no challenge is stored, that
-           implies $userwebauthn was not saved back to the user database after prepareForLogin. It
-           would be better to produce an error here, but for the purposes of backward compatibility, it'll 
-           allow it, but with a replay vulnerability */
-        //log(print_r($key->challenge,1).' '.print_r($info->response->clientData->challenge,1));
-        if (isset($key->challenge) && $key->challenge != $info->response->clientData->challenge) {
-            $this->oops("you cannot use the same login more than once");
-        }
         /* clear the challenge (but retain it as a property) from each of the keys, so it cannot be re-used */
         foreach($webauthn as $idx => $candkey) { $webauthn[$idx]->challenge = ''; }
         $userwebauthn = json_encode($webauthn);
-        
-        /* cross check origin */
-        $origin = parse_url($info->response->clientData->origin);
-        if ($this->appid != $origin['host']) {
-            $this->oops("origin mismatch '{$info->response->clientData->origin}'");
-        }
-
-        if ($info->response->clientData->type != 'webauthn.get') {
-            $this->oops("type mismatch '{$info->response->clientData->type}'");
-        }
 
         $bs = self::arrayToString($info->response->authenticatorData);
         $ao = (object)array();
@@ -378,7 +381,7 @@ class WebAuthn
         $clientdata = self::arrayToString($info->response->clientDataJSONarray);
         $signeddata = $hashId . chr($ao->flags) . $ao->counter . hash('sha256', $clientdata, true);
 
-        if (count($info->response->signature) < 70) {
+        if (count($info->response->signature) < 64) {
             $this->oops('cannot decode key response (3)');
         }
 
@@ -397,6 +400,44 @@ class WebAuthn
     }
 
         return true;
+    }
+
+    /**
+    * decode clientDataJSON given as an array of uint8's (the bytes covered by the signature at login)
+    * @param array $clientDataArray
+    * @return object decoded clientData
+    */
+    private function clientDataFromBytes($clientDataArray)
+    {
+        if (empty($clientDataArray) || ! is_array($clientDataArray)) {
+            $this->oops('no clientDataJSON in info');
+        }
+        return json_decode(self::arrayToString($clientDataArray));
+    }
+
+    /**
+    * verify type, challenge and origin in decoded clientData
+    * @param object $cd decoded clientData
+    * @param string $expectedType 'webauthn.create' or 'webauthn.get'
+    * @param string $expectedChallenge base64url challenge we issued
+    */
+    private function checkClientData($cd, $expectedType, $expectedChallenge)
+    {
+        if (! is_object($cd) || ! isset($cd->type, $cd->challenge, $cd->origin)
+            || ! is_string($cd->type) || ! is_string($cd->challenge) || ! is_string($cd->origin)) {
+            $this->oops('no valid clientDataJSON in info');
+        }
+        if (! hash_equals($expectedType, $cd->type)) {
+            $this->oops("type mismatch '{$cd->type}'");
+        }
+        if (! is_string($expectedChallenge) || $expectedChallenge === ''
+            || ! hash_equals($expectedChallenge, $cd->challenge)) {
+            $this->oops('challenge mismatch');
+        }
+        $origin = parse_url($cd->origin);
+        if (empty($origin['host']) || $this->appid != $origin['host']) {
+            $this->oops("origin mismatch '{$cd->origin}'");
+        }
     }
 
     /**

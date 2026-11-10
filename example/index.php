@@ -71,21 +71,25 @@ if (! empty($_POST)) {
       $user = (object)['name'=> $username,
                        'id'=> $userid,
                        'webauthnkeys' => $webauthn->cancel()];
+      $challengeData = $webauthn->prepareChallengeForRegistration($username, $userid, $crossplatform);
+      $user->challengedata = $challengeData; /* a json string */
       saveuser($user);
       $_SESSION['username'] = $username;
-      $j = ['challenge' => $webauthn->prepareChallengeForRegistration($username, $userid, $crossplatform)];
+      $j = ['challenge' => $challengeData];
       break;
 
     case isset($_POST['register']):
       /* complete the registration */
       if (empty($_SESSION['username'])) { oops('username not set'); }
       $user = getuser($_SESSION['username']);
+      if (empty($user->challengedata)) { oops('challengedata not set'); }
 
       /* The heart of the matter */
-      $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys);
+      $user->webauthnkeys = $webauthn->register($_POST['register'], $user->webauthnkeys, $user->challengedata);
 
       /* Save the result to enable a challenge to be raised agains this
-         newly created key in order to log in */
+         newly created key in order to log in, and to remove redundant challengedata */
+      unset($user->challengedata);
       saveuser($user);
       $j = 'ok';
 

@@ -7,7 +7,7 @@ or fingerprint reader etc, and repackage it in a palatable form for
 sending to the server.
 
 When generating the login page on the server, request a challenge from
-webauthn->challenge(), and put the result into a hidden field on the
+webauthn->prepareForLogin(), and put the result into a hidden field on the
 login form (which will also need your means to identify the user,
 e.g. email address), probably as well as alternative means to log in
 (such as a password login), or perhaps you're using the key as a

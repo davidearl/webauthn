@@ -8,7 +8,7 @@ or fingerprint reader etc, and repackage it in a palatable form for
 sending to the server.
 
 When registering a user account, or allowing them to add a key in their profile,
-or whatever, request a challenge from $webauthn->challenge() (e.g. using Ajax)
+or whatever, request a challenge from $webauthn->prepareChallengeForRegistration() (e.g. using Ajax)
 and pass the resulting key string to
   webauthnRegister(key, callback)
 where key is the contents of the hidden field (or however else you stored
